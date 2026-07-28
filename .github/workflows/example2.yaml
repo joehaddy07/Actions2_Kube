@@ -1,22 +1,87 @@
+# ==========================================================
+# Workflow Name
+# This name appears in the GitHub Actions tab.
+# ==========================================================
 name: Verify Kind Cluster
 
+# ==========================================================
+# Trigger
+# Run this workflow whenever code is pushed to the main branch.
+# ==========================================================
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
+# ==========================================================
+# Permissions
+# Grant the workflow permission to read repository contents.
+# 'security-events' is only needed for security scanning tools
+# such as CodeQL. It can be removed if not used.
+# ==========================================================
+permissions:
+  contents: read
+  security-events: write
+
+# ==========================================================
+# Jobs
+# A workflow can contain one or more jobs.
+# This job verifies that the self-hosted runner can access
+# Docker, Kind, kubectl, and Helm.
+# ==========================================================
 jobs:
+
   verify:
+
+    # ------------------------------------------------------
+    # Run this job on a self-hosted GitHub Actions runner.
+    # This runner is installed on the same Ubuntu server that
+    # hosts the Kind Kubernetes cluster.
+    # ------------------------------------------------------
     runs-on: self-hosted
 
     steps:
+
+      # ----------------------------------------------------
+      # Step 1: Checkout Repository
+      #
+      # Downloads the latest source code from GitHub onto
+      # the self-hosted runner.
+      # ----------------------------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # ----------------------------------------------------
+      # Step 2: Verify the Environment
+      #
+      # These commands confirm that the runner has access to:
+      # - the current Linux user
+      # - the working directory
+      # - Docker
+      # - the Kind cluster
+      # - kubectl
+      # - the Kubernetes nodes
+      # - Helm
+      # ----------------------------------------------------
       - name: Verify Environment
         run: |
+          echo "Current User:"
           whoami
+
+          echo "Working Directory:"
           pwd
+
+          echo "Docker Version:"
           docker version
+
+          echo "Kind Clusters:"
           kind get clusters
+
+          echo "Current Kubernetes Context:"
           kubectl config current-context
+
+          echo "Kubernetes Nodes:"
           kubectl get nodes
+
+          echo "Helm Version:"
           helm version
